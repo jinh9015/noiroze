@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid px-4">
+            <h1 class="mt-4">102동</h1>
+            <!-- 드롭다운 메뉴 (동) -->
+            <div class="row">
+                <div class="col">
+                  <label for="dongSelect" class="form-label">동 선택</label>
+                  <select class="form-select" id="dongSelect">
+                    <option value="">동을 선택하세요</option>
+                    <option value="101">101동</option>
+                    <option value="102">102동</option>
+                    <option value="103">103동</option>
+                    <option value="104">104동</option>
+                    <option value="105">105동</option>
+                    <!-- 위와 같은 형식으로 동 추가 가능합니다. -->
+                  </select>
+                </div>
+            </div>
+            
+            <!-- 해당 동으로 이동하는 스크립트 -->
+            <script>
+                document.getElementById('dongSelect').addEventListener('change', function() {
+                    var selectedDong = this.value;
+                    location.href = "/main/dong_" + selectedDong;
+                });
+            </script>
+
+            <ol class="breadcrumb mb-4">
+                <!-- 여백  -->
+            </ol>
+            <div class="row">
+                <div class="col-xl-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-chart-area me-1"></i> 월별 평균 데시벨
+                        </div>
+                        <div class="card-body">
+                            <canvas id="myAreaChart" width="100%" height="40"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar me-1"></i> 일별 평균 데시벨
+                        </div>
+                        <div class="card-body">
+                            <canvas id="myBarChart" width="100%" height="40"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-13">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar me-1"></i> 호수별 평균 데시벨
+                        </div>
+                        <div class="card-body">
+                            <p>주간 1분 등가소음도 <span style="color: #FDB813 ;">39dB</span></p>
+                            <p>야간 1분 등가소음도 <span style="color: #000E38 ;">34dB</span></p>
+                            <canvas id="myHoChart" width="100%" height="40"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="py-4 bg-light mt-auto">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center justify-content-between small">
+                <div class="text-muted">Copyright &copy; Team NoiRoze</div>
+                <div>
+                    <a>문의사항 : </a>
+                    <!-- &middot; -->
+                    <a>010-1234-5678</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'chart/chart_dong/chart-102.js' %}"></script>
+{% endblock %}

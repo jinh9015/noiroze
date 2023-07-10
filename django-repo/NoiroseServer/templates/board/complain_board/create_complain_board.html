@@ -1,0 +1,6 @@
+<h2>민원접수 게시판 작성</h2>
+<form method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">완료</button>
+</form>

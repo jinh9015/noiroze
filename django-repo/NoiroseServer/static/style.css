@@ -1,0 +1,39 @@
+/* mobile first */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;400;500;700&display=swap');
+
+* {
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.page-link {
+    border: 0px;
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+.avatar-sm {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.comment {
+    border-top: dotted 1px #ddd;
+    font-size: 0.7em;
+}
+
+
+
+/* width가 540이상이면 */
+@media(min-width:540px) {
+    .auth-form {
+        width: 540px;
+    }
+}

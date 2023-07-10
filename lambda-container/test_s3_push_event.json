@@ -1,0 +1,15 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "bucket": {
+          "name": "noiroze-noisefile"
+        },
+        "object": {
+          "key": "test1.wav",
+          "size": 1400000
+        }
+      }
+    }
+  ]
+}

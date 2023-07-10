@@ -1,0 +1,176 @@
+<!-- 필요한 기능은 주석을 해제하세요 -->
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .smaller-button {
+        padding: 2px 6px; /* 상하 2px, 좌우 6px 여백 */
+        font-size: 12px;  /* 텍스트 크기 12px */
+    }
+</style>
+
+<div id="layoutSidenav_content">
+    <main>
+    <div class="container-fluid px-4">
+        <div class="row">
+            <div class="col-md-14">
+                <!-- 게시글 목록 -->
+                <div class="container mt-5">
+                    <h2>민원접수 게시판</h2>
+                    <table class="table table-striped mt-3">
+                        <thead>
+                            <tr>
+                                <th>제목</th>
+                                <th>작성자</th>
+                                <th>작성일</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for board in board_list %}
+                                <tr>
+                                    <td><a href="{% url 'main:complain_board_detail' board.id %}">{{ board.title }}</a></td>
+                                    <td>{{ board.author }}</td>
+                                    <td>{{ board.created_date }}</td>
+                                    <td>
+                                        <!-- <a href="{% url 'main:update_complain_board' board.id %}" class="btn btn-primary smaller-button" onclick="updateBoard({{ board.id }})">수정</a> -->
+                                        <button type="button" class="btn btn-danger smaller-button" onclick="deleteBoard({{ board.id }})">삭제</button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5">게시글이 없습니다.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <!-- <a href="{% url 'main:create_complain_board' %}" class="btn btn-primary mb-3">게시글 작성</a> -->
+                </div>
+
+                <!-- 페이지네이션 -->
+                {% if board_list.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {% if board_list.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ board_list.previous_page_number }}&kw={{ kw }}&so={{ so }}">Previous</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Previous</span>
+                                </li>
+                            {% endif %}
+
+                            {% for i in board_list.paginator.page_range %}
+                                {% if board_list.number == i %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ i }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ i }}&sort={{ sort }}">{{ i }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        
+
+                            {% if board_list.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ board_list.next_page_number }}&kw={{ kw }}&so={{ so }}">Next</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+    <footer class="py-4 bg-light mt-auto">
+        <div class="container-fluid px-4">
+            <div class="d-flex align-items-center justify-content-between small">
+                <div class="text-muted">Copyright &copy; Team NoiRoze</div>
+                <div>
+                    <a>문의사항 : </a>
+                    <!-- &middot; -->
+                    <a>010-1234-5678</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    </div>
+</div>
+
+<form id="TokenForm" method="post" style="display:none;">
+    {% csrf_token %}
+</form>
+
+<script>
+    function updateBoard(boardId) {
+        const updateBtn = document.querySelector(`[onclick="updateBoard(${boardId})"]`);
+        const deleteBtn = updateBtn.nextElementSibling;
+        const token = localStorage.getItem('auth-token');
+        if (!token) {
+            updateBtn.hidden = true;
+            deleteBtn.hidden = true;
+        }
+    }
+    
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        const allUpdateButtons = document.querySelectorAll("a[onclick^='updateBoard']");
+        allUpdateButtons.forEach((btn) => {
+            const boardId = parseInt(btn.getAttribute("onclick").split("(")[1]);
+            updateBoard(boardId);
+        });
+    });
+    
+    function getCsrfToken() {
+    return document.querySelector("input[name='csrfmiddlewaretoken']").value;
+}
+
+    function deleteBoard(boardId) {
+        if (confirm("정말 삭제하시겠습니까?")) {
+            const token = getCookie("auth-token");
+            const csrfToken = getCsrfToken();
+            const requestParams = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                    "X-CSRFToken": csrfToken,
+                },
+            };
+
+            fetch(`/main/delete_complain_board/${boardId}/`, requestParams)
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        return response.text().then((text) => {
+                            try {
+                                const result = JSON.parse(text);
+                                if (result.status === "fail") {
+                                    console.error("Error deleting board:", result);
+                                }
+                            } catch (error) {
+                                console.error("Expected JSON, but received non-JSON response:", text);
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Error in fetch:", error);
+                });
+        }
+    }
+
+    </script>
+{% endblock %}

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: noiroze-web
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: noiroze-web
+  template:
+    metadata:
+      labels:
+        app: noiroze-web
+    spec:
+      initContainers:
+        - name: migrate
+          image: jinh9015/noiroze-web:$BUILD_NUMBER
+          imagePullPolicy: Always
+          command: ["sh", "-c", "python manage.py makemigrations && python manage.py migrate"]
+      containers:
+        - name: noiroze-web
+          image: jinh9015/noiroze-web:$BUILD_NUMBER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 250m
+            limits:
+              cpu: 500m
+          env:  # 환경 변수 부분 추가
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: noiroze-secret
+                  key: aws_access_key
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: noiroze-secret
+                  key: aws_secret_key

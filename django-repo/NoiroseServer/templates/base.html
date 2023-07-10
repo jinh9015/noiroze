@@ -1,0 +1,139 @@
+{% load static %}
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Web CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}"> 
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+    <title>Noiroze | 관리자 페이지</title>
+</head>
+<body>
+<!-- 네비게이션바 -->
+{% include "navbar.html" %}
+<!-- 기본 템플릿 안에 삽입될 내용 Start -->
+{% block content %}
+{% endblock %}
+<!-- 기본 템플릿 안에 삽입될 내용 End -->
+
+<!-- Bootstrap JS -->
+<script src="{% static 'jquery-3.6.3.min.js' %}"></script>
+<script src="{% static 'bootstrap.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+<!-- 자바스크립트 Start -->
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script> <!-- 그래프 그리는 자바스크립트보다 먼저 로드되어야 함 -->
+<script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+<script src="{% static 'scripts.js' %}"></script> <!-- 사이드바 토글 자바스크립트 -->
+
+{% endblock %}
+<!-- 자바스크립트 End -->
+
+<!-- 각 템플릿에 적용되는 자바스크립트 Start-->
+<!-- 그래프를 추가하려면 해당 동 템플릿에서 블록 사이에 자바스크립트를 추가하세요  -->
+{% block extra_js %}
+{% endblock %}
+<!-- 각 템플릿에 적용되는 자바스크립트 End -->
+
+</body>
+</html>
+
+<!-- 토큰 존재 여부에 따른 우측 상단 버튼 보이기/숨기기 액션-->
+<script>
+    window.addEventListener('DOMContentLoaded', (event) => {
+      var token = localStorage.getItem('auth-token');               // 로그인 성공 시, 로컬 스토리지에 존재하는 토큰을 가져옴
+     
+      if (token) {                                            // 토큰이 존재하는 경우
+        document.getElementById('logout-button').style.display = 'block'; 
+        document.getElementById('login-button').style.display = 'none';
+        document.getElementById('register-button').style.displㅌay = 'none';        // 로그아웃 버튼만 보여지도록 설정
+      } 
+      else {
+        document.getElementById('logout-button').style.display = 'none';
+        document.getElementById('login-button').style.display = 'block';
+        document.getElementById('register-button').style.display = 'block';     // 토큰이 없는 경우 로그인, 회원가입 버튼이 보여지도록 설정
+
+        window.location.href = "/common/login/"; 
+      }
+    });
+  
+    document.getElementById('logout-button').addEventListener('click', function(e) {         // 로그아웃 버튼 클릭 시, 동작하는 함수
+      e.preventDefault();                                                                    // 기본 동작(페이지 이동)을 취소
+  
+      
+      fetch('/api/user_logout/', {               // api/user_logout 으로 로그아웃 요청 보내기. api/urls.py 에서 엔드포인트 확인 가능
+        method: 'POST',                          // api/views.py 의 user_logout 함수의 동작에 따라 설정.
+        headers: {
+          'Authorization': 'Token ' + localStorage.getItem('auth-token'),          // 로컬 스토리지에 있는 토큰을 가져와서, 요청 헤더에 포함.
+        },
+      })
+      .then(response => {
+        if (!response.ok) {                           // 토큰이 검증되지 않은 사용자가 로그아웃 시도 시.
+          throw new Error('Logout failed');                  
+        }
+        localStorage.removeItem('auth-token');             // 검증이 처리 된 경우, 해당 사용자의 토큰을 제거     
+        updateUIAfterLogout();                        // 본문 읽기를 스킵하고 직접 토큰을 제거하고 UI를 업데이트
+      })
+      .catch(error => {
+        console.error('Error:', error);               // 에러 발생 시에는 에러 검증 후 출력.
+      });
+    });
+  
+    function updateUIAfterLogout() {                                         // 로그아웃 이후 UI 업데이트 함수
+      document.getElementById('logout-button').style.display = 'none';       // 로그아웃 버튼 숨기기
+      document.getElementById('login-button').style.display = 'block';       // 로그인 버튼 보이기
+      document.getElementById('register-button').style.display = 'block';    // 회원가입 버튼 보이기
+  
+      
+      window.location.href = "/common/login/";       //   /common/login/ 페이지로 리디렉션
+    }
+  
+  
+  
+    window.onload = function() {               // 로그인 성공 시, 토큰으로 유저를 인증하고, 해당 유저의 정보를 가져오는 함수
+          var token = localStorage.getItem('auth-token');  // 로컬 스토리지에 저장된 인증토큰을 가져옴.
+          if (token) {
+              fetch('/api/user_detail', {  // 유저의 정보를 가져오는 API 엔드포인트. api/urls.py 에서 확인
+              method: 'GET',
+              headers: {
+                  'Authorization': 'Token ' + token,       // 인증을 위해 토큰을 포함하여 요청 전송
+              }
+              })
+              .then(function(response) {           
+              if (response.status === 200) {              // 응답 요청이 성공적인경우
+                  return response.json();
+              }
+              else {                                     // 응답 요청 실패시
+                  throw new Error('fetch user 정보를 불러오는데 실패');
+              }
+              })
+              .then(function(user) {    // 응답 요청 성공 시, 이후에 처리하는 함수
+
+              // 로그인 한 유저의 정보를 표시함
+              var userIdElement = document.getElementById('user_id');   // id="user_id" 에 해당하는 곳에
+              userIdElement.textContent = user.userid;                  // 유저 모델의 userid를 가져와서 부여
+
+              // 각 Element 사용한다면 주석 해제해서 사용
+
+              // var userNameElement = document.getElementById('user_name');   // id="user_name" 에 해당하는 곳에
+              // userNameElement.textContent = user.name;                    // 유저 모델의 name을 가져와서 부여
+              // var userEmailElement = document.getElementById('user_email');  // id="user_email" 에 해당하는 곳에
+              // userEmailElement.textContent = user.email;                   // 유저 모델의 email을 가져와서 부여
+              // var userDongElement = document.getElementById('user_dong');   // id="user_dong" 에 해당하는 곳에
+              // userDongElement.textContent = user.dong;                    // 유저 모델의 dong을 가져와서 부여
+              // var userHoElement = document.getElementById('user_ho');     // id="user_ho" 에 해당하는 곳에
+              // userHoElement.textContent = user.ho;                      // 유저 모델의 ho를 가져와서 부여
+              })
+              .catch(function(error) {
+              console.error('Error:', error);
+              });
+          }
+      };
+
+    
+
+</script>
+  

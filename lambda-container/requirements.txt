@@ -1,0 +1,8 @@
+Keras
+librosa
+numba
+numpy
+mysql-connector-python
+boto3
+tensorflow
+awslambdaric

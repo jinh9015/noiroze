@@ -1,0 +1,165 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ko">
+
+  <head>
+    <title>NoiroZe 회원가입</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap.min.css' %}">
+    <!-- main CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+    <!-- jQuery JS -->
+    <script src="{% static 'jquery-3.6.3.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="{% static 'bootstrap.min.js' %}"></script>
+
+    <style>
+      .signup_box {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 40%;
+        height: 90%;
+        box-shadow: 2px 2px 12px 2px black;
+        overflow: scroll;
+      }
+
+      .btn {
+        border-radius: 1em;
+        font-size: 18px;
+        width: 400px;
+        height: 40px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="signup_box">
+      <div class="container my-3">
+        <div class="row my-3">
+          <div class="col-4">
+            <table>
+              <tr>
+                <td>
+                  <a href="">
+                    <img alt="Noiroze logo" src='{% static "img/noiroze logo.png" %}' width="150"/></a>
+                </td>
+                <tr></table>
+
+              </div>
+              <div class="col-8 text-right">
+                <span>또는
+                  <a href=" {% url 'common:login' %}">로그인 하세요.</a>
+                </span>
+              </div>
+            </div>
+
+            <form method="post" class="post-form" id="register-form" action="{% url 'api:user_register' %}">
+              {% csrf_token %}
+              {% include "form_errors.html" %}
+
+              <div class="form-group">
+                <label for="userid">아이디</label>
+                <input type="text" class="form-control" name="userid" id="userid" value="{{ form.userid.value|default_if_none:'' }}">
+              </div>
+            
+              <div class="form-group">
+                <label for="password1">비밀번호</label>
+                <input type="password" class="form-control" name="password" id="password" value="{{ form.password.value|default_if_none:'' }}">
+              </div>
+
+              <div class="form-group">
+                <label for="password2">비밀번호 확인</label>
+                <input type="password" class="form-control" name="password2" id="password2" value="{{ form.password2.value|default_if_none:'' }}">
+              </div>
+
+              <div class="form-group">
+                <label for="email">이메일</label>
+                <input type="text" class="form-control" name="email" id="email" value="{{ form.email.value|default_if_none:'' }}">
+              </div>
+
+              <div class="form-group">
+                <label for="name">성명</label>
+                <input type="text" class="form-control" name="name" id="name" value="{{ form.name.value|default_if_none:'' }}">
+              </div>
+
+              <div class="form-group">
+                <label for="apartment">아파트명</label>
+                <input type="text" class="form-control" name="apartment" id="apartment" value="{{ form.apartment.value|default_if_none:'' }}">
+              </div>
+
+              <div class="form-group">
+                <label for="dong">동</label>
+                <select name="dong" id="dong">
+                    <option>::동 선택::</option>
+                    <option value="A">A동</option>
+                    <option value="B">B동</option>
+                    <option value="C">C동</option>
+                    <option value="D">D동</option>
+                    <option value="E">E동</option>
+                </select><br>
+              </div>
+
+              <div class="form-group">
+                <label for="ho">호수</label>
+                <input type="text" class="form-control" name="ho" id="ho" value="{{ form.ho.value|default_if_none:'' }}">
+              </div>
+              <br>
+
+              <div class="form-group" align="center">
+                <button type="submit" class="btn btn-primary mb-2">회원가입</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+
+</html>
+
+<script>
+    $(document).ready(function() {
+        $('#register-form').on('submit', function(e) {
+            e.preventDefault(); // Prevent the form from submitting via the browser.
+    
+            var form = $(this);
+            var url = form.attr('action');
+    
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: form.serialize(),    // 폼 데이터를 직렬화 하여 전송
+                success: function(data) {
+                    alert('회원가입에 성공하였습니다.');
+                    window.location.href = "/common/login";  // redirect to the login page
+                },
+                error: function(xhr, status, error) {
+                    var response = JSON.parse(xhr.responseText);
+
+                    if (response && response.hasOwnProperty('errors')) {
+                        var errorMessages = response.errors;
+                        var errorMessage = "회원가입에 실패하였습니다. 입력하신 정보를 확인해주세요.";
+                        if (errorMessages && errorMessages.length > 0) {
+                            errorMessage = errorMessages[0]; // 첫 번째 에러 메시지만 사용
+                        }
+                        alert(errorMessage);
+                    } 
+                    else {
+                        alert('회원가입에 실패하였습니다. 입력하신 정보를 확인해주세요.');
+                    }
+                    
+                    window.location.href = "/common/register";  // redirect back to the register page
+                }
+
+            });
+        });
+    });
+</script>
